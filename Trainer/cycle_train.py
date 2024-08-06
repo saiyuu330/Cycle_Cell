@@ -5,7 +5,7 @@ import itertools
 from .base import *
 from model import Generator, Discriminator
 from torch.optim.lr_scheduler import LambdaLR
-from data.dataset import create_dataloader
+from data.dataset import create_dataloader, augment_dataset
 from tqdm import trange
 
 
@@ -98,6 +98,7 @@ class Trainer(Learner):
 
         self.model_state = None
         self.optimizer = None
+        self.img_size = 256
 
     def train(self):
         set_seed(self.seed)
@@ -107,9 +108,6 @@ class Trainer(Learner):
         load_checkpoint(start_epoch, self.G, self.F, self.D_A, self.D_B,
                         self.optimizer_G, self.optimizer_D_A, self.optimizer_D_B, checkpoint_dir)
 
-        lambda_cyc = 10
-        lambda_id = 0.5 * lambda_cyc
-
         scheduler_G = LambdaLR(self.optimizer_G, lr_lambda=lambda_rule(self.epochs))
         scheduler_D_A = LambdaLR(self.optimizer_D_A, lr_lambda=lambda_rule(self.epochs))
         scheduler_D_B = LambdaLR(self.optimizer_D_B, lr_lambda=lambda_rule(self.epochs))
@@ -118,15 +116,21 @@ class Trainer(Learner):
         path_a = os.path.join(self.data_dir, labels[0])
         path_b = os.path.join(self.data_dir, labels[1])
 
-        dataloader_A = create_dataloader(path_a, self.batch_size, self.is_train)
-        dataloader_B = create_dataloader(path_b, self.batch_size, self.is_train)
+        path_bp = './image/cropped'
 
-        # 학습 루프
+        augment_dataset(path_b, path_bp, len(os.listdir(path_a)))
+
+        dataloader_A = create_dataloader(path_a, self.batch_size, self.is_train)
+        dataloader_B = create_dataloader(path_bp, self.batch_size, self.is_train)
+
+        print("================== make dataloader done. ==================")
+
         for epoch in trange(self.epochs):
             for i, (real_A, real_B) in enumerate(zip(dataloader_A, dataloader_B)):
                 # 진짜 및 가짜 타겟
-                valid = torch.ones((real_A.size(0), 1, 10, 10))  # 진짜일 경우의 판별기 출력
-                fake = torch.zeros((real_A.size(0), 1, 10, 10))  # 가짜일 경우의 판별기 출력
+                num = int(self.img_size/8 - 6/4)
+                valid = torch.ones((real_A.size(0), 1, num, num))  # 진짜일 경우의 판별기 출력
+                fake = torch.zeros((real_A.size(0), 1, num, num))  # 가짜일 경우의 판별기 출력
 
                 # ----------------------
                 #  Generator 학습
@@ -151,20 +155,15 @@ class Trainer(Learner):
                 recov_B = self.G(fake_A)
                 loss_cycle_B = self.criterion_cycle(recov_B, real_B)
 
-                # 정체성 손실 (선택적)
-                loss_identity_A = self.criterion_identity(self.F(real_A), real_A)
-                loss_identity_B = self.criterion_identity(self.G(real_B), real_B)
+                loss_G = (loss_GAN_AB + loss_GAN_BA) + 10 * (loss_cycle_A + loss_cycle_B)
 
-                # 총 생성기 손실
-                loss_G = (loss_GAN_AB + loss_GAN_BA) + lambda_cyc * (loss_cycle_A + loss_cycle_B) + lambda_id * (
-                            loss_identity_A + loss_identity_B)
                 loss_G.backward()
                 self.optimizer_G.step()
 
                 # ----------------------
                 #  Discriminator 학습
                 # ----------------------
-
+                print("Discriminator 학습")
                 # 도메인 A 판별기 학습
                 self.optimizer_D_A.zero_grad()
 

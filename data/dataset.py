@@ -2,6 +2,9 @@ import os
 from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 from PIL import Image
+import random
+
+image_size = 256
 
 
 class CustomImageDataset(Dataset):
@@ -21,9 +24,38 @@ class CustomImageDataset(Dataset):
         return image
 
 
+def crop_randomly(image):
+    width, height = image.size
+    crop_width, crop_height = image_size, image_size
+
+    x = random.randint(0, width - crop_width)
+    y = random.randint(0, height - crop_height)
+
+    return image.crop((x, y, x + crop_width, y + crop_height))
+
+
+def augment_dataset(input_dir, output_dir, num_crops):
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    images = [f for f in os.listdir(input_dir) if f.endswith('.jpg') or f.endswith('.png')]
+
+    counter = 0
+    while counter < num_crops:
+        for img_name in images:
+            img_path = os.path.join(input_dir, img_name)
+            image = Image.open(img_path)
+            cropped_image = crop_randomly(image)
+            output_path = os.path.join(output_dir, f'{img_name[:-5]}_cropped_{counter}.png')
+            cropped_image.save(output_path)
+            counter += 1
+            if counter >= num_crops:
+                break
+
+
 def create_dataset(path):
     trans = transforms.Compose([
-        transforms.Resize((100, 100)),
+        transforms.Resize((image_size, image_size)),
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
