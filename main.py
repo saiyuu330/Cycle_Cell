@@ -39,7 +39,7 @@ def classify(arg):
 
 if __name__ == "__main__":
     result = subprocess.run(['nvidia-smi'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    print(result)
+    print(result.stdout)
 
     args = arg_parser.parse_args()
     if args.mode == "cycle_gan":

@@ -81,10 +81,10 @@ def load_checkpoint(epoch, generator_G, generator_F, discriminator_D_A, discrimi
 class Trainer(Learner):
     def __init__(self, args):
         super().__init__(args)
-        self.G = Generator()  # A -> B
-        self.F = Generator()  # B -> A
-        self.D_A = Discriminator()  # A 판별기
-        self.D_B = Discriminator()  # B 판별기
+        self.G = Generator().to(args.device)  # A -> B
+        self.F = Generator().to(args.device)  # B -> A
+        self.D_A = Discriminator().to(args.device)  # A 판별기
+        self.D_B = Discriminator().to(args.device)  # B 판별기
 
         # 손실 함수
         self.criterion_GAN = nn.MSELoss()
@@ -99,6 +99,7 @@ class Trainer(Learner):
         self.model_state = None
         self.optimizer = None
         self.img_size = 256
+        self.device = args.device
 
     def train(self):
         set_seed(self.seed)
@@ -129,8 +130,8 @@ class Trainer(Learner):
             for i, (real_A, real_B) in enumerate(zip(dataloader_A, dataloader_B)):
                 # 진짜 및 가짜 타겟
                 num = int(self.img_size/8 - 6/4)
-                valid = torch.ones((real_A.size(0), 1, num, num))  # 진짜일 경우의 판별기 출력
-                fake = torch.zeros((real_A.size(0), 1, num, num))  # 가짜일 경우의 판별기 출력
+                valid = torch.ones((real_A.size(0), 1, num, num), device=self.device)  # 진짜일 경우의 판별기 출력
+                fake = torch.zeros((real_A.size(0), 1, num, num), device=self.device)  # 가짜일 경우의 판별기 출력
 
                 # ----------------------
                 #  Generator 학습
@@ -139,11 +140,13 @@ class Trainer(Learner):
                 self.optimizer_G.zero_grad()
 
                 # 도메인 A의 이미지 -> 도메인 B의 이미지
+                real_A = real_A.to(self.device)
                 fake_B = self.G(real_A)
                 pred_fake = self.D_B(fake_B)
                 loss_GAN_AB = self.criterion_GAN(pred_fake, valid)  # G가 만들어낸 B 이미지의 GAN 손실
 
                 # 도메인 B의 이미지 -> 도메인 A의 이미지
+                real_B = real_B.to(self.device)
                 fake_A = self.F(real_B)
                 pred_fake = self.D_A(fake_A)
                 loss_GAN_BA = self.criterion_GAN(pred_fake, valid)  # F가 만들어낸 A 이미지의 GAN 손실
@@ -163,7 +166,7 @@ class Trainer(Learner):
                 # ----------------------
                 #  Discriminator 학습
                 # ----------------------
-    
+
                 # 도메인 A 판별기 학습
                 self.optimizer_D_A.zero_grad()
 
@@ -205,3 +208,4 @@ class Trainer(Learner):
             if (epoch + 1) % save_interval == 0:
                 save_checkpoint(epoch + 1, self.G, self.F, self.D_A, self.D_B,
                                 self.optimizer_G, self.optimizer_D_A, self.optimizer_D_B, checkpoint_dir)
+
