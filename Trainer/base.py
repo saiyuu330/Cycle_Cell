@@ -15,6 +15,7 @@ class Learner:
         self.seed = args.seed
         self.criterion = torch.nn.CrossEntropyLoss()
         self.is_train = args.isTrain
+        self.img_size = args.img_size
 
 
 def set_seed(seed):

@@ -4,8 +4,6 @@ from torchvision import transforms
 from PIL import Image
 import random
 
-image_size = 256
-
 
 class CustomImageDataset(Dataset):
     def __init__(self, path, transform=None):
@@ -24,7 +22,7 @@ class CustomImageDataset(Dataset):
         return image
 
 
-def crop_randomly(image):
+def crop_randomly(image, image_size):
     width, height = image.size
     crop_width, crop_height = image_size, image_size
 
@@ -34,7 +32,7 @@ def crop_randomly(image):
     return image.crop((x, y, x + crop_width, y + crop_height))
 
 
-def augment_dataset(input_dir, output_dir, num_crops):
+def augment_dataset(input_dir, output_dir, num_crops, image_size):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
@@ -45,7 +43,7 @@ def augment_dataset(input_dir, output_dir, num_crops):
         for img_name in images:
             img_path = os.path.join(input_dir, img_name)
             image = Image.open(img_path)
-            cropped_image = crop_randomly(image)
+            cropped_image = crop_randomly(image, image_size)
             output_path = os.path.join(output_dir, f'{img_name[:-5]}_cropped_{counter}.png')
             cropped_image.save(output_path)
             counter += 1
@@ -53,7 +51,7 @@ def augment_dataset(input_dir, output_dir, num_crops):
                 break
 
 
-def create_dataset(path):
+def create_dataset(path, image_size):
     trans = transforms.Compose([
         transforms.Resize((image_size, image_size)),
         transforms.ToTensor(),
@@ -64,7 +62,7 @@ def create_dataset(path):
     return dataset
 
 
-def create_dataloader(in_dir, b_size, is_train):
-    imageset = create_dataset(in_dir)
+def create_dataloader(in_dir, b_size, is_train, image_size):
+    imageset = create_dataset(in_dir, image_size)
     dataloader = DataLoader(imageset, batch_size=b_size, shuffle=is_train)
     return dataloader

@@ -6,7 +6,6 @@ from .base import *
 from model import Generator, Discriminator
 from torch.optim.lr_scheduler import LambdaLR
 from data.dataset import create_dataloader, augment_dataset
-from tqdm import trange
 
 
 def lambda_rule(epoch):
@@ -103,6 +102,7 @@ class Trainer(Learner):
 
     def train(self):
         set_seed(self.seed)
+        loss_list = []
 
         checkpoint_dir = 'checkpoints'
         start_epoch = 0
@@ -119,14 +119,17 @@ class Trainer(Learner):
 
         path_bp = './image/cropped'
 
-        augment_dataset(path_b, path_bp, len(os.listdir(path_a)))
+        augment_dataset(path_b, path_bp, len(os.listdir(path_a)), self.img_size)
 
-        dataloader_A = create_dataloader(path_a, self.batch_size, self.is_train)
-        dataloader_B = create_dataloader(path_bp, self.batch_size, self.is_train)
+        dataloader_A = create_dataloader(path_a, self.batch_size, self.is_train, self.img_size)
+        dataloader_B = create_dataloader(path_bp, self.batch_size, self.is_train, self.img_size)
 
         print("================== make dataloader done. ==================")
 
-        for epoch in trange(self.epochs):
+        for epoch in range(self.epochs):
+            epoch_loss_G, epoch_loss_D_A, epoch_loss_D_B = 0.0, 0.0, 0.0
+            num_batches = 0
+
             for i, (real_A, real_B) in enumerate(zip(dataloader_A, dataloader_B)):
                 # 진짜 및 가짜 타겟
                 num = int(self.img_size/8 - 6/4)
@@ -139,19 +142,16 @@ class Trainer(Learner):
 
                 self.optimizer_G.zero_grad()
 
-                # 도메인 A의 이미지 -> 도메인 B의 이미지
                 real_A = real_A.to(self.device)
                 fake_B = self.G(real_A)
                 pred_fake = self.D_B(fake_B)
-                loss_GAN_AB = self.criterion_GAN(pred_fake, valid)  # G가 만들어낸 B 이미지의 GAN 손실
+                loss_GAN_AB = self.criterion_GAN(pred_fake, valid)
 
-                # 도메인 B의 이미지 -> 도메인 A의 이미지
                 real_B = real_B.to(self.device)
                 fake_A = self.F(real_B)
                 pred_fake = self.D_A(fake_A)
-                loss_GAN_BA = self.criterion_GAN(pred_fake, valid)  # F가 만들어낸 A 이미지의 GAN 손실
+                loss_GAN_BA = self.criterion_GAN(pred_fake, valid)
 
-                # 순환 일관성 손실
                 recov_A = self.F(fake_B)
                 loss_cycle_A = self.criterion_cycle(recov_A, real_A)
 
@@ -193,19 +193,28 @@ class Trainer(Learner):
                 loss_D_B.backward()
                 self.optimizer_D_B.step()
 
-                # 로그 출력
-                print(f"[Epoch {epoch}/{self.epochs}] [Batch {i}/{len(dataloader_A)}] "
-                      f"[D_A loss: {loss_D_A.item()}] [D_B loss: {loss_D_B.item()}] "
-                      f"[G loss: {loss_G.item()}]")
+                epoch_loss_G += loss_G.item()
+                epoch_loss_D_A += loss_D_A.item()
+                epoch_loss_D_B += loss_D_B.item()
+                num_batches += 1
 
-            # 학습률 스케줄러 단계 업데이트
+            avg_loss_G = epoch_loss_G / num_batches
+            avg_loss_D_A = epoch_loss_D_A / num_batches
+            avg_loss_D_B = epoch_loss_D_B / num_batches
+
+            print(f"[Epoch {epoch + 1}/{self.epochs}] "
+                  f"[D_A loss: {avg_loss_D_A:.4f}] [D_B loss: {avg_loss_D_B:.4f}] "
+                  f"[G loss: {avg_loss_G:.4f}]")
+
+            loss_list.append([avg_loss_D_A, avg_loss_D_B, avg_loss_G])
+
             scheduler_G.step()
             scheduler_D_A.step()
             scheduler_D_B.step()
 
-            # checkpoint 저장
-            save_interval = 5
+            save_interval = 10
             if (epoch + 1) % save_interval == 0:
                 save_checkpoint(epoch + 1, self.G, self.F, self.D_A, self.D_B,
                                 self.optimizer_G, self.optimizer_D_A, self.optimizer_D_B, checkpoint_dir)
 
+        return loss_list
