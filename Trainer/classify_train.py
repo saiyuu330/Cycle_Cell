@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from base import Learner, set_seed
+from .base import Learner, set_seed
 from model.classifier import Classifier
 
 

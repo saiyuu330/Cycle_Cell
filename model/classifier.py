@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-from distributed.protocol import torch
 
 
 class Classifier(nn.Module):
@@ -10,7 +9,7 @@ class Classifier(nn.Module):
     def __init__(self, input_size, output_size):
         super().__init__(self)
         self.conv1 = torch.Sequential(
-            torch.nn.Conv1d(in_channels=1, out_channels=32, kernel_size=3, padding=1),
+            torch.nn.Conv1d(in_channels=input_size, out_channels=32, kernel_size=3, padding=1),
             torch.nn.BatchNorm1d(32),
             torch.nn.ReLU(),
             torch.nn.Dropout(0.2),

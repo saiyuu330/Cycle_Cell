@@ -11,7 +11,7 @@ arg_parser.add_argument("--epochs", default=100, help="number of epochs")
 arg_parser.add_argument("--batch_size", default=64, help="batch size")
 arg_parser.add_argument("--learning_rate", default=1e-4, help="learning rate")
 arg_parser.add_argument("--seed", default=42, help="random seed")
-arg_parser.add_argument("--resume_from", default="", help="resume from checkpoint")
+arg_parser.add_argument("--resume_from", default=None, help="resume from checkpoint")
 arg_parser.add_argument("--device", default="cpu", help="use cpu or cuda")
 
 
@@ -21,7 +21,7 @@ def generate_model(arg):
         trainer.train()
 
     else:
-        cycle_predict('test_data/image01.jpg')
+        cycle_predict(arg, 'test_data/image01.jpg')
 
 
 def classify(arg):

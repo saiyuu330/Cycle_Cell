@@ -2,18 +2,23 @@ import os
 import torch.nn as nn
 from torch.optim import Adam
 import itertools
-from base import *
+from .base import *
 from model import Generator, Discriminator
 from torch.optim.lr_scheduler import LambdaLR
+from data.dataset import create_dataloader
+from tqdm import trange
 
 
 def lambda_rule(epoch):
     decay_epoch = 50
-    return 1.0 - max(0, epoch - decay_epoch) / (epoch - decay_epoch)
+
+    def lr_lambda(current_epoch):
+        return 1.0 - max(0, current_epoch - decay_epoch) / float(decay_epoch)
+    return lr_lambda
 
 
 def save_checkpoint(epoch, generator_G, generator_F, discriminator_D_A, discriminator_D_B,
-                    optimizer_G, optimizer_D_A, optimizer_D_B, checkpoint_dir='checkpoints'):
+                    optimizer_G, optimizer_D_A, optimizer_D_B, checkpoint_dir='./checkpoints'):
     if not os.path.exists(checkpoint_dir):
         os.makedirs(checkpoint_dir)
 
@@ -78,8 +83,8 @@ class Trainer(Learner):
         super().__init__(args)
         self.G = Generator()  # A -> B
         self.F = Generator()  # B -> A
-        self.D_A = Discriminator(100)  # A 판별기
-        self.D_B = Discriminator(100)  # B 판별기
+        self.D_A = Discriminator()  # A 판별기
+        self.D_B = Discriminator()  # B 판별기
 
         # 손실 함수
         self.criterion_GAN = nn.MSELoss()
@@ -102,23 +107,26 @@ class Trainer(Learner):
         load_checkpoint(start_epoch, self.G, self.F, self.D_A, self.D_B,
                         self.optimizer_G, self.optimizer_D_A, self.optimizer_D_B, checkpoint_dir)
 
-        lambda_cyc = 10  # 사이클 일관성 손실 가중치
-        lambda_id = 0.5 * lambda_cyc  # 정체성 손실 가중치
+        lambda_cyc = 10
+        lambda_id = 0.5 * lambda_cyc
 
         scheduler_G = LambdaLR(self.optimizer_G, lr_lambda=lambda_rule(self.epochs))
         scheduler_D_A = LambdaLR(self.optimizer_D_A, lr_lambda=lambda_rule(self.epochs))
         scheduler_D_B = LambdaLR(self.optimizer_D_B, lr_lambda=lambda_rule(self.epochs))
 
-        # 학습 데이터 로더 가정
-        # dataloader_A = ...
-        # dataloader_B = ...
+        labels = os.listdir(self.data_dir)
+        path_a = os.path.join(self.data_dir, labels[0])
+        path_b = os.path.join(self.data_dir, labels[1])
+
+        dataloader_A = create_dataloader(path_a, self.batch_size, self.is_train)
+        dataloader_B = create_dataloader(path_b, self.batch_size, self.is_train)
 
         # 학습 루프
-        for epoch in range(self.epochs):
+        for epoch in trange(self.epochs):
             for i, (real_A, real_B) in enumerate(zip(dataloader_A, dataloader_B)):
                 # 진짜 및 가짜 타겟
-                valid = torch.ones((real_A.size(0), 1, 16, 16))  # 진짜일 경우의 판별기 출력
-                fake = torch.zeros((real_A.size(0), 1, 16, 16))  # 가짜일 경우의 판별기 출력
+                valid = torch.ones((real_A.size(0), 1, 10, 10))  # 진짜일 경우의 판별기 출력
+                fake = torch.zeros((real_A.size(0), 1, 10, 10))  # 가짜일 경우의 판별기 출력
 
                 # ----------------------
                 #  Generator 학습

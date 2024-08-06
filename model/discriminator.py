@@ -1,9 +1,8 @@
-import torch
 import torch.nn as nn
 
 
 class Discriminator(nn.Module):
-    def __init__(self, input_nc):
+    def __init__(self, input_nc=3):
         super(Discriminator, self).__init__()
 
         model = [
