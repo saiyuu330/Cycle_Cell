@@ -163,7 +163,7 @@ class Trainer(Learner):
                 # ----------------------
                 #  Discriminator 학습
                 # ----------------------
-                print("Discriminator 학습")
+    
                 # 도메인 A 판별기 학습
                 self.optimizer_D_A.zero_grad()
 

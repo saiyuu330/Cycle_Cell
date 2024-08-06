@@ -1,6 +1,8 @@
 import os
 import argparse
 from Trainer import *
+import subprocess
+
 
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument("--mode", default="cycle_gan", help="cycle_gan or classification")
@@ -36,6 +38,9 @@ def classify(arg):
 
 
 if __name__ == "__main__":
+    result = subprocess.run(['nvidia-smi'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    print(result)
+
     args = arg_parser.parse_args()
     if args.mode == "cycle_gan":
         generate_model(args)
