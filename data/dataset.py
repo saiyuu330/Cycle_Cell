@@ -66,5 +66,5 @@ def create_dataset(path):
 
 def create_dataloader(in_dir, b_size, is_train):
     imageset = create_dataset(in_dir)
-    dataloader = DataLoader(imageset, batch_size=b_size, shuffle=is_train, num_workers=4)
+    dataloader = DataLoader(imageset, batch_size=b_size, shuffle=is_train)
     return dataloader
