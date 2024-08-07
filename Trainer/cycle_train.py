@@ -112,9 +112,8 @@ class Trainer(Learner):
         scheduler_D_A = LambdaLR(self.optimizer_D_A, lr_lambda=lambda_rule(self.epochs))
         scheduler_D_B = LambdaLR(self.optimizer_D_B, lr_lambda=lambda_rule(self.epochs))
 
-        labels = os.listdir(self.data_dir)
-        path_a = os.path.join(self.data_dir, labels[0])
-        path_b = os.path.join(self.data_dir, labels[1])
+        path_a = os.path.join(self.data_dir, "01. preprocessed_grid")
+        path_b = os.path.join(self.data_dir, "02. Image_15000")
         path_ap = './image/cropped'
 
         augment_dataset(path_a, path_ap, os.listdir(path_a), len(os.listdir(path_b)), self.img_size)

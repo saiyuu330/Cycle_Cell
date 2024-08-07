@@ -8,7 +8,6 @@ from config import parser
 
 def generate_model(arg):
     if arg.isTrain == "Train":
-        print("start")
         trainer = CycleTrainer(arg)
         loss_list = trainer.train()
         draw_graph(loss_list)
