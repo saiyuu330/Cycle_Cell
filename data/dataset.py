@@ -32,21 +32,29 @@ def crop_randomly(image, image_size):
     return image.crop((x, y, x + crop_width, y + crop_height))
 
 
-def augment_dataset(input_dir, output_dir, num_crops, image_size):
+def augment_dataset(input_dir, output_dir, folder, num_crops, image_size):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    images = [f for f in os.listdir(input_dir) if f.endswith('.jpg') or f.endswith('.png')]
+    images = []
+    pth_lst = []
+    for f in folder:
+        img_path = os.path.join(input_dir, f)
+        length = int(len(os.listdir(img_path)) * 0.8)
+        pth_lst += [img_path for _ in range(length)]
+        lst_path = os.listdir(img_path)[:length]
+        images += [f for f in lst_path if f.endswith('.jpg') or f.endswith('.png')]
 
     counter = 0
     while counter < num_crops:
-        for img_name in images:
-            img_path = os.path.join(input_dir, img_name)
-            image = Image.open(img_path)
+        for i, img_name in enumerate(images):
+            img = os.path.join(pth_lst[i], img_name)
+            image = Image.open(img)
             cropped_image = crop_randomly(image, image_size)
-            output_path = os.path.join(output_dir, f'{img_name[:-5]}_cropped_{counter}.png')
+            output_path = os.path.join(output_dir, f'{img_name[:-4]}_cropped_{counter}.png')
             cropped_image.save(output_path)
             counter += 1
+
             if counter >= num_crops:
                 break
 
@@ -64,5 +72,5 @@ def create_dataset(path, image_size):
 
 def create_dataloader(in_dir, b_size, is_train, image_size):
     imageset = create_dataset(in_dir, image_size)
-    dataloader = DataLoader(imageset, batch_size=b_size, shuffle=is_train)
+    dataloader = DataLoader(imageset, batch_size=b_size, shuffle=is_train, num_workers=4)
     return dataloader

@@ -7,12 +7,14 @@ from config import parser
 
 
 def generate_model(arg):
-    if arg.isTrain:
+    if arg.isTrain == "Train":
+        print("start")
         trainer = CycleTrainer(arg)
-        return trainer.train()
+        loss_list = trainer.train()
+        draw_graph(loss_list)
 
-    else:
-        cycle_predict(arg, 'test_data/image01.jpg')
+    elif arg.isTrain == "Test":
+        cycle_predict(arg, './test_data/img28.jpg', 100)
 
 
 def classify(arg):
@@ -20,7 +22,7 @@ def classify(arg):
         trainer = ClassifyTrainer(arg)
         trainer.train()
     else:
-        label, properties = classify_predict('test_data/image01.jpg')
+        label, properties = classify_predict(arg, 'test_data/img28.jpg')
         list_label = os.listdir(arg.input_dir)
 
         print(list_label[label], properties)
@@ -33,8 +35,7 @@ if __name__ == "__main__":
 
     args = parser()
     if args.mode == "cycle_gan":
-        loss_list = generate_model(args)
-        draw_graph(loss_list)
+        generate_model(args)
 
     elif args.mode == "classification":
         classify(args)

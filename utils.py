@@ -1,13 +1,14 @@
 from PIL import Image
 from matplotlib import pyplot as plt
 from torchvision import transforms
+import numpy as np
 
 
-def load_image(img_path):
+def load_image(img_path, crop_size):
     image = Image.open(img_path).convert('RGB')
 
     preprocess = transforms.Compose([
-        transforms.Resize((100, 100)),
+        transforms.CenterCrop(crop_size),
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
@@ -17,13 +18,13 @@ def load_image(img_path):
 
 
 def denormalize(tensor):
-    tensor = tensor * 0.5 + 0.5  # [-1, 1] -> [0, 1]
+    tensor = tensor * 0.5 + 0.5
     return tensor.clamp(0, 1)
 
 
 def draw_graph(loss):
     plt.figure(figsize=(5, 15))
-    loss_arr = loss.data.numpy()
+    loss_arr = np.array(loss)
     loss_arr = loss_arr.T
 
     loss_D_A = loss_arr[0]

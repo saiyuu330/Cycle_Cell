@@ -97,14 +97,13 @@ class Trainer(Learner):
 
         self.model_state = None
         self.optimizer = None
-        self.img_size = 256
         self.device = args.device
 
     def train(self):
         set_seed(self.seed)
         loss_list = []
 
-        checkpoint_dir = 'checkpoints'
+        checkpoint_dir = './checkpoints'
         start_epoch = 0
         load_checkpoint(start_epoch, self.G, self.F, self.D_A, self.D_B,
                         self.optimizer_G, self.optimizer_D_A, self.optimizer_D_B, checkpoint_dir)
@@ -116,17 +115,18 @@ class Trainer(Learner):
         labels = os.listdir(self.data_dir)
         path_a = os.path.join(self.data_dir, labels[0])
         path_b = os.path.join(self.data_dir, labels[1])
+        path_ap = './image/cropped'
 
-        path_bp = './image/cropped'
+        augment_dataset(path_a, path_ap, os.listdir(path_a), len(os.listdir(path_b)), self.img_size)
+        print("================== data augment done. ==================")
 
-        augment_dataset(path_b, path_bp, len(os.listdir(path_a)), self.img_size)
+        dataloader_A = create_dataloader(path_ap, self.batch_size, self.is_train, self.img_size)
+        print("================== make dataloader A done. ==================")
 
-        dataloader_A = create_dataloader(path_a, self.batch_size, self.is_train, self.img_size)
-        dataloader_B = create_dataloader(path_bp, self.batch_size, self.is_train, self.img_size)
+        dataloader_B = create_dataloader(path_b, self.batch_size, self.is_train, self.img_size)
+        print("================== make dataloader B done. ==================")
 
-        print("================== make dataloader done. ==================")
-
-        for epoch in range(self.epochs):
+        for epoch in range(self.start_epoch, self.epochs):
             epoch_loss_G, epoch_loss_D_A, epoch_loss_D_B = 0.0, 0.0, 0.0
             num_batches = 0
 
