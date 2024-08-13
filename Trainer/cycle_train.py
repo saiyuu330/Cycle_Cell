@@ -5,7 +5,7 @@ import itertools
 from .base import *
 from model import Generator, Discriminator
 from torch.optim.lr_scheduler import LambdaLR
-from data.dataset import create_dataloader, augment_dataset
+from data.dataset import create_cycle_loader, augment_dataset
 
 
 def lambda_rule(epoch):
@@ -114,15 +114,16 @@ class Trainer(Learner):
 
         path_a = os.path.join(self.data_dir, "01. preprocessed_grid")
         path_b = os.path.join(self.data_dir, "02. Image_15000")
-        path_ap = './image/cropped'
-
-        augment_dataset(path_a, path_ap, os.listdir(path_a), len(os.listdir(path_b)), self.img_size)
+        path_ap = './image/03. cropped_images'
+        if not os.path.isdir(path_ap):
+            augment_dataset(path_a, path_ap, len(os.listdir(path_b)), self.img_size)
+            path_a = path_ap
         print("================== data augment done. ==================")
 
-        dataloader_A = create_dataloader(path_ap, self.batch_size, self.is_train, self.img_size)
+        dataloader_A = create_cycle_loader(path_a, self.batch_size, self.is_train, self.img_size)
         print("================== make dataloader A done. ==================")
 
-        dataloader_B = create_dataloader(path_b, self.batch_size, self.is_train, self.img_size)
+        dataloader_B = create_cycle_loader(path_b, self.batch_size, self.is_train, self.img_size)
         print("================== make dataloader B done. ==================")
 
         for epoch in range(self.start_epoch, self.epochs):

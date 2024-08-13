@@ -2,65 +2,73 @@ import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader
 from .base import Learner, set_seed
 from model.classifier import Classifier
+from sklearn.model_selection import KFold
+from torch.utils.data import Subset, DataLoader
+from data.dataset import create_class_dataset
 
 
 class Trainer(Learner):
     def __init__(self, args):
         super().__init__(args)
         self.input_dir = args.input_dir
-        self.train_loader = DataLoader(...)  # Initialize your training data loader
-        self.valid_loader = DataLoader(...)  # Initialize your validation data loader
+        self.dataset = create_class_dataset(self.input_dir, self.img_size)
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.epochs = args.epochs
         self.seed = args.seed
-        self.lr = args.lr  # Learning rate
+        self.img_size = args.img_size
 
     def train(self):
-        # Set the seed for reproducibility
         set_seed(self.seed)
 
-        # Determine the output dimension
-        out_dim = len(os.listdir(self.input_dir))
-        model = Classifier(100, out_dim)
-        model = model.to(self.device)
+        kfold = KFold(n_splits=5, shuffle=True, random_state=self.seed)
 
-        # Define loss function and optimizer
-        criterion = nn.CrossEntropyLoss()
-        optimizer = optim.Adam(model.parameters(), lr=self.lr)
+        all_scores = []
 
-        for epoch in range(self.epochs):
-            model.train()
-            running_loss = 0.0
-            correct_predictions = 0
-            total_predictions = 0
+        for fold, (train_idx, val_idx) in enumerate(kfold.split(self.dataset)):
+            print(f'FOLD {fold + 1}')
+            print('--------------------------------')
 
-            for (x, y) in self.train_loader:
-                x, y = x.to(self.device), y.to(self.device)
+            trainset = Subset(self.dataset, train_idx)
+            valset = Subset(self.dataset, val_idx)
 
-                # Zero the parameter gradients
-                optimizer.zero_grad()
+            train_loader = DataLoader(trainset, batch_size=self.batch_size, shuffle=True)
+            val_loader = DataLoader(valset, batch_size=self.batch_size, shuffle=False)
 
-                # Forward pass
-                output = model(x)
-                loss = criterion(output, y)
+            model = Classifier(self.img_size, 6)
+            model = model.to(self.device)
 
-                # Backward pass and optimization
-                loss.backward()
-                optimizer.step()
+            criterion = nn.CrossEntropyLoss()
+            optimizer = optim.Adam(model.parameters(), lr=self.learning_rate)
+            loss = 0.0
+            for epoch in range(self.epochs):
+                model.train()
 
-                # Statistics
-                running_loss += loss.item()
-                _, predicted = torch.max(output.data, 1)
-                total_predictions += y.size(0)
-                correct_predictions += (predicted == y).sum().item()
+                for batch in train_loader:
+                    inputs, targets = batch
 
-            # Calculate average loss and accuracy
-            avg_loss = running_loss / len(self.train_loader)
-            accuracy = correct_predictions / total_predictions * 100
+                    optimizer.zero_grad()
+                    outputs = model(inputs)
+                    loss = criterion(outputs, targets)
+                    loss.backward()
+                    optimizer.step()
 
-            print(f'Epoch [{epoch + 1}/{self.epochs}], Loss: {avg_loss:.4f}, Accuracy: {accuracy:.2f}%')
+                model.eval()
+                correct = 0
+                total = 0
+                with torch.no_grad():
+                    for batch in val_loader:
+                        inputs, targets = batch
+                        inputs = inputs.view(-1, 28 * 28)
+                        outputs = model(inputs)
+                        _, predicted = torch.max(outputs, 1)
+                        total += targets.size(0)
+                        correct += (predicted == targets).sum().item()
 
-        print("Training completed.")
+                accuracy = correct / total
+                all_scores.append(accuracy)
+                print(f'Fold {fold + 1} / Epoch {epoch +1} / loss: {loss.item()} / acc : {accuracy * 100:.2f}%')
+
+        print('--------------------------------')
+        print(f'Mean accuracy across all folds: {sum(all_scores) / len(all_scores) * 100:.2f}%')

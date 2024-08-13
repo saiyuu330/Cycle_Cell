@@ -7,6 +7,7 @@ def parser():
     arg_parser.add_argument("--isTrain", default="Train", type=str, help="whether to train model")
     arg_parser.add_argument("--input_dir", default="./image", type=str, help="path to input directory")
     arg_parser.add_argument("--output_dir", default="./result", type=str, help="path to output directory")
+    arg_parser.add_argument("--test_dir", default="./test_data", type=str, help="path to test directory")
     arg_parser.add_argument("--epochs", default=100, type=int, help="number of epochs")
     arg_parser.add_argument("--batch_size", default=64, type=int, help="batch size")
     arg_parser.add_argument("--learning_rate", default=1e-4, type=int, help="learning rate")

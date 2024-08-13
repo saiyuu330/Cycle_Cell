@@ -13,7 +13,8 @@ def generate_model(arg):
         draw_graph(loss_list)
 
     elif arg.isTrain == "Test":
-        cycle_predict(arg, './test_data/img28.jpg', 100)
+        image_path = os.path.join(arg.test_dir + "/img03.png")
+        cycle_predict(arg, image_path)
 
 
 def classify(arg):
@@ -21,10 +22,10 @@ def classify(arg):
         trainer = ClassifyTrainer(arg)
         trainer.train()
     else:
-        label, properties = classify_predict(arg, 'test_data/img28.jpg')
-        list_label = os.listdir(arg.input_dir)
+        image_path = os.path.join(arg.test_dir + "/img02.png")
+        label, properties = classify_predict(arg, image_path)
 
-        print(list_label[label], properties)
+        print(label, properties)
 
 
 if __name__ == "__main__":
@@ -36,7 +37,7 @@ if __name__ == "__main__":
     if args.mode == "cycle_gan":
         generate_model(args)
 
-    elif args.mode == "classification":
+    elif args.mode == "classify":
         classify(args)
 
     elif args.mode == "all":

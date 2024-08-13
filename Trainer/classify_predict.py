@@ -5,10 +5,10 @@ from utils import load_image
 
 
 def predict(arg, image_path):
-    classifier_path = './checkpoints/generator_A_to_B_100.pth'
+    classifier_path = f'./checkpoints/generator_A_to_B_{arg.epochs}.pth'
 
     out_dim = len(os.listdir(arg.input_dir))
-    model = Classifier(100, out_dim)
+    model = Classifier(arg.img_size, out_dim)
 
     classifier = Classifier(100, out_dim).to(arg.device)
     classifier.load_state_dict(torch.load(classifier_path, map_location=arg.device))
