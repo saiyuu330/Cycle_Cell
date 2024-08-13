@@ -6,7 +6,6 @@ import numpy as np
 class Learner:
     def __init__(self, args):
         super().__init__()
-        self.chk_point = args.resume_from
         self.start_epoch = args.start_epoch
         self.epochs = args.epochs
         self.data_dir = args.input_dir
@@ -17,6 +16,7 @@ class Learner:
         self.criterion = torch.nn.CrossEntropyLoss()
         self.is_train = args.isTrain
         self.img_size = args.img_size
+        self.device = args.device
 
 
 def set_seed(seed):

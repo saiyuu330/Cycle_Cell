@@ -50,6 +50,7 @@ def save_checkpoint(epoch, generator_G, generator_F, discriminator_D_A, discrimi
 
 def load_checkpoint(epoch, generator_G, generator_F, discriminator_D_A, discriminator_D_B,
                     optimizer_G, optimizer_D_A, optimizer_D_B, checkpoint_dir='checkpoints'):
+
     generator_G_path = os.path.join(checkpoint_dir, f'generator_A_to_B_{epoch}.pth')
     generator_F_path = os.path.join(checkpoint_dir, f'generator_B_to A_{epoch}.pth')
     discriminator_D_A_path = os.path.join(checkpoint_dir, f'discriminator_D_A_{epoch}.pth')
@@ -97,16 +98,14 @@ class Trainer(Learner):
 
         self.model_state = None
         self.optimizer = None
-        self.device = args.device
+        self.check_dir = args.check_dir
 
     def train(self):
         set_seed(self.seed)
         loss_list = []
 
-        checkpoint_dir = './content/drive/MyDrive/checkpoints'
-        start_epoch = 0
-        load_checkpoint(start_epoch, self.G, self.F, self.D_A, self.D_B,
-                        self.optimizer_G, self.optimizer_D_A, self.optimizer_D_B, checkpoint_dir)
+        load_checkpoint(self.start_epoch, self.G, self.F, self.D_A, self.D_B,
+                        self.optimizer_G, self.optimizer_D_A, self.optimizer_D_B, self.check_dir)
 
         scheduler_G = LambdaLR(self.optimizer_G, lr_lambda=lambda_rule(self.epochs))
         scheduler_D_A = LambdaLR(self.optimizer_D_A, lr_lambda=lambda_rule(self.epochs))
@@ -114,7 +113,7 @@ class Trainer(Learner):
 
         path_a = os.path.join(self.data_dir, "01. source data")
         path_b = os.path.join(self.data_dir, "02. target data")
-        path_ap = './image/03. augmented source data'
+        path_ap = os.path.join(self.data_dir, '03. augmented source data')
         if not os.path.isdir(path_ap):
             augment_dataset(path_a, path_ap, len(os.listdir(path_b)), self.img_size)
             path_a = path_ap
@@ -214,6 +213,6 @@ class Trainer(Learner):
             save_interval = 10
             if (epoch + 1) % save_interval == 0:
                 save_checkpoint(epoch + 1, self.G, self.F, self.D_A, self.D_B,
-                                self.optimizer_G, self.optimizer_D_A, self.optimizer_D_B, checkpoint_dir)
+                                self.optimizer_G, self.optimizer_D_A, self.optimizer_D_B, self.check_dir)
 
         return loss_list
