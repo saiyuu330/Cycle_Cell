@@ -9,7 +9,7 @@ from data.dataset import create_cycle_loader, augment_dataset
 
 
 def lambda_rule(epoch):
-    decay_epoch = 50
+    decay_epoch = 20
 
     def lr_lambda(current_epoch):
         return 1.0 - max(0, current_epoch - decay_epoch) / float(decay_epoch)
