@@ -50,8 +50,8 @@ def save_checkpoint(epoch, generator_G, generator_F, discriminator_D_A, discrimi
 
 def load_checkpoint(epoch, generator_G, generator_F, discriminator_D_A, discriminator_D_B,
                     optimizer_G, optimizer_D_A, optimizer_D_B, checkpoint_dir='checkpoints'):
-    generator_G_path = os.path.join(checkpoint_dir, f'generator_G_{epoch}.pth')
-    generator_F_path = os.path.join(checkpoint_dir, f'generator_F_{epoch}.pth')
+    generator_G_path = os.path.join(checkpoint_dir, f'generator_A_to_B_{epoch}.pth')
+    generator_F_path = os.path.join(checkpoint_dir, f'generator_B_to A_{epoch}.pth')
     discriminator_D_A_path = os.path.join(checkpoint_dir, f'discriminator_D_A_{epoch}.pth')
     discriminator_D_B_path = os.path.join(checkpoint_dir, f'discriminator_D_B_{epoch}.pth')
 
@@ -59,12 +59,12 @@ def load_checkpoint(epoch, generator_G, generator_F, discriminator_D_A, discrimi
         checkpoint = torch.load(generator_G_path)
         generator_G.load_state_dict(checkpoint['generator_G_state_dict'])
         optimizer_G.load_state_dict(checkpoint['optimizer_G_state_dict'])
-        print(f'Loaded checkpoint for generator_G from epoch {epoch}')
+        print(f'Loaded checkpoint for generator_A_to_B from epoch {epoch}')
     if os.path.isfile(generator_F_path):
         checkpoint = torch.load(generator_F_path)
         generator_F.load_state_dict(checkpoint['generator_F_state_dict'])
         optimizer_G.load_state_dict(checkpoint['optimizer_G_state_dict'])
-        print(f'Loaded checkpoint for generator_F from epoch {epoch}')
+        print(f'Loaded checkpoint for generator_B_to_A from epoch {epoch}')
     if os.path.isfile(discriminator_D_A_path):
         checkpoint = torch.load(discriminator_D_A_path)
         discriminator_D_A.load_state_dict(checkpoint['discriminator_D_A_state_dict'])
@@ -118,20 +118,19 @@ class Trainer(Learner):
         if not os.path.isdir(path_ap):
             augment_dataset(path_a, path_ap, len(os.listdir(path_b)), self.img_size)
             path_a = path_ap
-        print("================== data augment done. ==================")
+        print("====================== data augment done. ======================")
 
         dataloader_A = create_cycle_loader(path_a, self.batch_size, self.is_train, self.img_size)
-        print("================== make dataloader A done. ==================")
 
         dataloader_B = create_cycle_loader(path_b, self.batch_size, self.is_train, self.img_size)
-        print("================== make dataloader B done. ==================")
+        print("====================== make dataloader done. ======================")
 
         for epoch in range(self.start_epoch, self.epochs):
             epoch_loss_G, epoch_loss_D_A, epoch_loss_D_B = 0.0, 0.0, 0.0
             num_batches = 0
 
             for i, (real_A, real_B) in enumerate(zip(dataloader_A, dataloader_B)):
-                # 진짜 및 가짜 타겟
+
                 num = int(self.img_size/8 - 6/4)
                 valid = torch.ones((real_A.size(0), 1, num, num), device=self.device)  # 진짜일 경우의 판별기 출력
                 fake = torch.zeros((real_A.size(0), 1, num, num), device=self.device)  # 가짜일 경우의 판별기 출력
