@@ -103,7 +103,7 @@ class Trainer(Learner):
         set_seed(self.seed)
         loss_list = []
 
-        checkpoint_dir = './checkpoints'
+        checkpoint_dir = './content/drive/MyDrive/checkpoints'
         start_epoch = 0
         load_checkpoint(start_epoch, self.G, self.F, self.D_A, self.D_B,
                         self.optimizer_G, self.optimizer_D_A, self.optimizer_D_B, checkpoint_dir)
@@ -112,9 +112,9 @@ class Trainer(Learner):
         scheduler_D_A = LambdaLR(self.optimizer_D_A, lr_lambda=lambda_rule(self.epochs))
         scheduler_D_B = LambdaLR(self.optimizer_D_B, lr_lambda=lambda_rule(self.epochs))
 
-        path_a = os.path.join(self.data_dir, "01. preprocessed_grid")
-        path_b = os.path.join(self.data_dir, "02. Image_15000")
-        path_ap = './image/03. cropped_images'
+        path_a = os.path.join(self.data_dir, "01. source data")
+        path_b = os.path.join(self.data_dir, "02. target data")
+        path_ap = './image/03. augmented source data'
         if not os.path.isdir(path_ap):
             augment_dataset(path_a, path_ap, len(os.listdir(path_b)), self.img_size)
             path_a = path_ap
