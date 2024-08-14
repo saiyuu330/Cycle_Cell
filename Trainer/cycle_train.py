@@ -116,10 +116,9 @@ class Trainer(Learner):
         path_ap = os.path.join(self.data_dir, '03. augmented source data')
         if not os.path.isdir(path_ap):
             augment_dataset(path_a, path_ap, len(os.listdir(path_b)), self.img_size)
-            path_a = path_ap
         print("====================== data augment done. ======================")
 
-        dataloader_A = create_cycle_loader(path_a, self.batch_size, self.is_train, self.img_size)
+        dataloader_A = create_cycle_loader(path_ap, self.batch_size, self.is_train, self.img_size)
 
         dataloader_B = create_cycle_loader(path_b, self.batch_size, self.is_train, self.img_size)
         print("====================== make dataloader done. ======================")
