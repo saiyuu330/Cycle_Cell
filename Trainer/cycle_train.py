@@ -52,7 +52,7 @@ def load_checkpoint(epoch, generator_G, generator_F, discriminator_D_A, discrimi
                     optimizer_G, optimizer_D_A, optimizer_D_B, checkpoint_dir='checkpoints'):
 
     generator_G_path = os.path.join(checkpoint_dir, f'generator_A_to_B_{epoch}.pth')
-    generator_F_path = os.path.join(checkpoint_dir, f'generator_B_to A_{epoch}.pth')
+    generator_F_path = os.path.join(checkpoint_dir, f'generator_B_to_A_{epoch}.pth')
     discriminator_D_A_path = os.path.join(checkpoint_dir, f'discriminator_D_A_{epoch}.pth')
     discriminator_D_B_path = os.path.join(checkpoint_dir, f'discriminator_D_B_{epoch}.pth')
 
