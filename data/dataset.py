@@ -150,7 +150,7 @@ def create_cycle_loader(in_dir, b_size, mode, image_size):
     if mode == "Train":
         is_train = True
 
-    dataloader = DataLoader(imageset, batch_size=b_size, shuffle=is_train, num_workers=4)
+    dataloader = DataLoader(imageset, batch_size=b_size, shuffle=is_train)
     return dataloader
 
 
