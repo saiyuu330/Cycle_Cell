@@ -159,7 +159,7 @@ def create_class_dataset(path, image_size):
     labels = []
     class_names = ['oligomycin', 'control', 'rotenone', 'untreated', '3xSNCA', 'oligomer']
     num_classes = len(class_names)
-    folder = os.path.join(path, os.listdir(path)[1])
+    folder = os.path.join(path, "02. target data")
 
     for filename in os.listdir(folder):
         label = -1
