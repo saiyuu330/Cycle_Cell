@@ -51,11 +51,12 @@ class Trainer(Learner):
 
                     optimizer.zero_grad()
                     outputs = model(inputs)
-                    loss = criterion(outputs.cpu(), targets)
+                    outputs = outputs.cpu()
+                    loss = criterion(outputs, targets)
                     loss.backward()
                     optimizer.step()
 
-                    acc = (outputs.argmax(dim=-1) == targets).float().mean()
+                    acc = (outputs.argmax(dim=-1) == targets.argmax(dim=-1)).float().mean()
                     train_loss.append(loss.item())
                     train_acc.append(acc)
                 TA = sum(train_acc) / len(train_acc)
@@ -70,13 +71,17 @@ class Trainer(Learner):
 
                     with torch.no_grad():
                         outputs = model(inputs)
-                        loss = criterion(outputs.cpu(), targets)
+                        outputs = outputs.cpu()
+                        loss = criterion(outputs, targets)
 
-                    acc = (outputs.argmax(dim=-1) == targets).float().mean()
+                    acc = (outputs.argmax(dim=-1) == targets.argmax(dim=-1)).float().mean()
                     valid_loss.append(loss.item())
                     valid_acc.append(acc)
                 VA = sum(valid_acc) / len(valid_acc)
                 VL = sum(valid_loss) / len(valid_loss)
                 print(f'Fold {fold + 1} / Epoch {epoch +1} / train loss: {TL:.3f} / train acc: {TA*100:.3f}% / valid loss: {VL:.3f} / valid acc : {VA*100:.3f}%')
+
+                if epoch % 10 == 0:
+                    torch.save(model.state_dict(), f'./checkpoints/classfy_{epoch}.pth')
 
         print('--------------------------------')

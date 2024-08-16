@@ -22,7 +22,7 @@ def classify(arg):
         trainer = ClassifyTrainer(arg)
         trainer.train()
     else:
-        image_path = os.path.join(arg.test_dir + "/img02.png")
+        image_path = os.path.join(arg.test_dir + "/generated_img01.png")
         label, properties = classify_predict(arg, image_path)
 
         print(label, properties)

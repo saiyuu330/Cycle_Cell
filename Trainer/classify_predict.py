@@ -5,19 +5,18 @@ from utils import load_image
 
 
 def predict(arg, image_path):
-    classifier_path = f'./checkpoints/generator_A_to_B_{arg.epochs}.pth'
+    classifier_path = f'./checkpoints/classify_{arg.epochs}.pth'
 
-    out_dim = len(os.listdir(arg.input_dir))
-    model = Classifier(arg.img_size, out_dim)
+    out_dim = len(os.listdir(arg.test_dir))
+    model = Classifier(arg.img_size, out_dim).to(arg.device)
 
-    classifier = Classifier(100, out_dim).to(arg.device)
-    classifier.load_state_dict(torch.load(classifier_path, map_location=arg.device))
-    classifier.eval()
+    model.load_state_dict(torch.load(classifier_path, map_location=arg.device))
+    model.eval()
 
     image = load_image(image_path).to(arg.device)
 
     with torch.no_grad():
-        output = classifier(image)
+        output = model(image)
 
     pred = output.argmax(dim=1, keepdim=True)
 
