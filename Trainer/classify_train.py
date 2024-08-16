@@ -63,7 +63,9 @@ class Trainer(Learner):
                 with torch.no_grad():
                     for batch in val_loader:
                         inputs, targets = batch
-                        inputs = inputs.view(-1, 28 * 28)
+                        inputs = inputs.to(self.device)
+                        targets = targets.to(self.device)
+
                         outputs = model(inputs)
                         _, predicted = torch.max(outputs, 1)
                         total += targets.size(0)
