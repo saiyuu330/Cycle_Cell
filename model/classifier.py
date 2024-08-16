@@ -10,22 +10,22 @@ class Classifier(nn.Module):
         super().__init__()
         self.conv1 = nn.Sequential(
             torch.nn.Conv2d(in_channels=3, out_channels=8, kernel_size=3, padding=1),
-            torch.nn.BatchNorm2d(32),
+            torch.nn.BatchNorm2d(8),
             torch.nn.ReLU(),
             torch.nn.Dropout(0.2),
 
             torch.nn.Conv2d(in_channels=8, out_channels=16, kernel_size=3, padding=1),
-            torch.nn.BatchNorm2d(64),
+            torch.nn.BatchNorm2d(16),
             torch.nn.ReLU(),
             torch.nn.Dropout(0.2),
 
             torch.nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, padding=1),
-            torch.nn.BatchNorm2d(128),
+            torch.nn.BatchNorm2d(32),
             torch.nn.ReLU(),
             torch.nn.Dropout(0.2),
 
             torch.nn.Conv2d(in_channels=32, out_channels=16, kernel_size=3, padding=1),
-            torch.nn.BatchNorm2d(256),
+            torch.nn.BatchNorm2d(16),
             torch.nn.ReLU(),
             torch.nn.Dropout(0.2),
         )
