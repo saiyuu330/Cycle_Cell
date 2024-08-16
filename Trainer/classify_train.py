@@ -52,11 +52,13 @@ class Trainer(Learner):
                     optimizer.zero_grad()
                     outputs = model(inputs)
                     outputs = outputs.cpu()
+
                     loss = criterion(outputs, targets)
                     loss.backward()
                     optimizer.step()
 
                     acc = (outputs.argmax(dim=-1) == targets.argmax(dim=-1)).float().mean()
+                    print(outputs.shape, "   ", loss.item(), "   ", acc)
                     train_loss.append(loss.item())
                     train_acc.append(acc)
                 TA = sum(train_acc) / len(train_acc)
