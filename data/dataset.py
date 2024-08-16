@@ -181,15 +181,12 @@ def create_class_dataset(path, image_size):
         ])
         arr_file = trans(file)
 
-        one_hot = np.zeros(num_classes, dtype=np.float32)
-        one_hot[label] = 1.0
-
         images.append(arr_file)
-        labels.append(one_hot)
+        labels.append(label)
 
     arr_label = np.array(labels)
     images_tensor = torch.stack(images)
-    labels_tensor = torch.tensor(arr_label, dtype=torch.float32)
+    labels_tensor = torch.tensor(arr_label, dtype=torch.int64)
 
     dataset = TensorDataset(images_tensor, labels_tensor)
     return dataset

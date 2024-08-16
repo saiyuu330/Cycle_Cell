@@ -35,4 +35,4 @@ class Classifier(nn.Module):
         x = self.conv1(x)
         x = torch.flatten(x, start_dim=1)
         x = self.fc(x)
-        return torch.softmax(x, dim=1)
+        return x
