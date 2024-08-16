@@ -79,6 +79,6 @@ class Trainer(Learner):
                     valid_acc.append(acc)
                 VA = sum(valid_acc) / len(valid_acc)
                 VL = sum(valid_loss) / len(valid_loss)
-                print(f'Fold {fold + 1} / Epoch {epoch +1} / train loss: {TL} / train acc: {TA}% / valid loss: {VL} / valid acc : {VA}%')
+                print(f'Fold {fold + 1} / Epoch {epoch +1} / train loss: {TL:.3f} / train acc: {TA*100:.3f}% / valid loss: {VL:.3f} / valid acc : {VA*100:.3f}%')
 
         print('--------------------------------')
