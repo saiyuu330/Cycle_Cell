@@ -25,6 +25,8 @@ class Trainer(Learner):
         kfold = KFold(n_splits=5, shuffle=True, random_state=self.seed)
 
         all_scores = []
+        model = Classifier(self.img_size, 6)
+        model = model.to(self.device)
 
         for fold, (train_idx, val_idx) in enumerate(kfold.split(self.dataset)):
             print(f'FOLD {fold + 1}')
@@ -36,9 +38,6 @@ class Trainer(Learner):
             train_loader = DataLoader(trainset, batch_size=self.batch_size, shuffle=True)
             val_loader = DataLoader(valset, batch_size=self.batch_size, shuffle=False)
 
-            model = Classifier(self.img_size, 6)
-            model = model.to(self.device)
-
             criterion = nn.CrossEntropyLoss()
             optimizer = optim.Adam(model.parameters(), lr=self.learning_rate)
             for epoch in range(self.epochs):
@@ -49,15 +48,14 @@ class Trainer(Learner):
                     inputs, targets = batch
 
                     inputs = inputs.to(self.device)
-                    targets = targets.to(self.device)
 
                     optimizer.zero_grad()
                     outputs = model(inputs)
-                    loss = criterion(outputs, targets)
+                    loss = criterion(outputs.cpu(), targets)
                     loss.backward()
                     optimizer.step()
 
-                    acc = (outputs.argmax(dim=-1) == targets.to(self.device).argmax(dim=-1)).float().mean()
+                    acc = (outputs.argmax(dim=-1) == targets).float().mean()
                     train_loss.append(loss.item())
                     train_acc.append(acc)
                 TA = sum(train_acc) / len(train_acc)
@@ -72,9 +70,9 @@ class Trainer(Learner):
 
                     with torch.no_grad():
                         outputs = model(inputs)
-                        loss = criterion(outputs.cpu(), targets.to(float))
+                        loss = criterion(outputs.cpu(), targets)
 
-                    acc = (outputs.argmax(dim=-1) == targets.to(self.device).argmax(dim=-1)).float().mean()
+                    acc = (outputs.argmax(dim=-1) == targets).float().mean()
                     valid_loss.append(loss.item())
                     valid_acc.append(acc)
                 VA = sum(valid_acc) / len(valid_acc)

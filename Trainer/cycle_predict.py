@@ -1,3 +1,4 @@
+import os
 import torch
 from torchvision import transforms
 import matplotlib.pyplot as plt
@@ -25,7 +26,7 @@ def predict(arg, image_path):
     fake_b_image = transforms.ToPILImage()(fake_b)
     print(f"Image type: {type(fake_b_image)}")  # 이미지 타입 확인
 
-    save_path = f'./test_data/generated_image1_{arg.epochs}.png'
+    save_path = os.path.join(arg.test_dir, "generated_img01.png")
     fake_b_image.save(save_path)
 
     plt.imshow(fake_b_image)

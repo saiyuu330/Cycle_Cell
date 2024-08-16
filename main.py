@@ -13,7 +13,7 @@ def generate_model(arg):
         draw_graph(loss_list)
 
     elif arg.isTrain == "Test":
-        image_path = os.path.join(arg.test_dir + "/img04.png")
+        image_path = os.path.join(arg.test_dir + "/img01.png")
         cycle_predict(arg, image_path)
 
 
