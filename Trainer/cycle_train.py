@@ -98,7 +98,6 @@ class Trainer(Learner):
 
         self.model_state = None
         self.optimizer = None
-        self.check_dir = args.check_dir
 
     def train(self):
         set_seed(self.seed)

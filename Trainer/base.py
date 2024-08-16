@@ -17,6 +17,7 @@ class Learner:
         self.is_train = args.isTrain
         self.img_size = args.img_size
         self.device = args.device
+        self.check_dir = args.check_dir
 
 
 def set_seed(seed):

@@ -82,6 +82,6 @@ class Trainer(Learner):
                 print(f'Fold {fold + 1} / Epoch {epoch +1} / train loss: {TL:.3f} / train acc: {TA*100:.3f}% / valid loss: {VL:.3f} / valid acc : {VA*100:.3f}%')
 
                 if epoch % 10 == 0:
-                    torch.save(model.state_dict(), f'./checkpoints/classfy_{epoch}.pth')
+                    torch.save(model.state_dict(), f'{self.check_dir}/classify_{epoch}.pth')
 
         print('--------------------------------')
