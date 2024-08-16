@@ -57,7 +57,7 @@ class Trainer(Learner):
                     loss.backward()
                     optimizer.step()
 
-                    acc = (outputs.argmax(dim=-1) == targets.argmax(dim=-1)).float().mean()
+                    acc = (outputs.argmax(dim=-1) == targets).float().mean()
 
                     train_loss.append(loss.item())
                     train_acc.append(acc)
@@ -76,7 +76,7 @@ class Trainer(Learner):
                         outputs = outputs.cpu()
                         loss = criterion(outputs, targets)
 
-                    acc = (outputs.argmax(dim=-1) == targets.argmax(dim=-1)).float().mean()
+                    acc = (outputs.argmax(dim=-1) == targets).float().mean()
                     valid_loss.append(loss.item())
                     valid_acc.append(acc)
                 VA = sum(valid_acc) / len(valid_acc)
