@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-from torchsummary import summary
 
 class Classifier(nn.Module):
     """
@@ -37,5 +36,3 @@ class Classifier(nn.Module):
         x = torch.flatten(x, start_dim=1)
         x = self.fc(x)
         return x
-
-summary(Classifier(128, 6), (3, 128, 128))
