@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-
+from torchsummary import summary
 
 class Classifier(nn.Module):
     """
@@ -28,11 +28,14 @@ class Classifier(nn.Module):
             torch.nn.BatchNorm2d(16),
             torch.nn.ReLU(),
             torch.nn.Dropout(0.2),
+            torch.nn.MaxPool2d(kernel_size=8, stride=8)
         )
-        self.fc = nn.Linear(in_features=16*input_size*input_size, out_features=output_size)
+        self.fc = nn.Linear(in_features=64*64, out_features=output_size)
 
     def forward(self, x):
         x = self.conv1(x)
         x = torch.flatten(x, start_dim=1)
         x = self.fc(x)
         return x
+
+summary(Classifier(128, 6), (3, 128, 128))
