@@ -48,6 +48,9 @@ class Trainer(Learner):
                 for batch in train_loader:
                     inputs, targets = batch
 
+                    inputs = inputs.to(self.device)
+                    targets = targets.to(self.device)
+
                     optimizer.zero_grad()
                     outputs = model(inputs)
                     loss = criterion(outputs, targets)
