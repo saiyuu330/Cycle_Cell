@@ -1,4 +1,4 @@
-import os
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -69,7 +69,8 @@ class Trainer(Learner):
                         outputs = model(inputs)
                         _, predicted = torch.max(outputs, 1)
                         total += targets.size(0)
-                        correct += (predicted == targets).sum().item()
+
+                        correct += (np.argmax(predicted) == np.argmax(targets)).sum().item()
 
                 accuracy = correct / total
                 all_scores.append(accuracy)
