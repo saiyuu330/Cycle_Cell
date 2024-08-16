@@ -14,7 +14,7 @@ class Trainer(Learner):
         super().__init__(args)
         self.input_dir = args.input_dir
         self.dataset = create_class_dataset(self.input_dir, self.img_size)
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = args.device
         self.epochs = args.epochs
         self.seed = args.seed
         self.img_size = args.img_size
@@ -25,19 +25,19 @@ class Trainer(Learner):
         kfold = KFold(n_splits=5, shuffle=True, random_state=self.seed)
 
         all_scores = []
-        model = Classifier(self.img_size, 6)
-        model = model.to(self.device)
 
         for fold, (train_idx, val_idx) in enumerate(kfold.split(self.dataset)):
             print(f'FOLD {fold + 1}')
             print('--------------------------------')
 
-            trainset = Subset(self.dataset, train_idx)
-            valset = Subset(self.dataset, val_idx)
+            train_set = Subset(self.dataset, train_idx)
+            val_set = Subset(self.dataset, val_idx)
 
-            train_loader = DataLoader(trainset, batch_size=self.batch_size, shuffle=True)
-            val_loader = DataLoader(valset, batch_size=self.batch_size, shuffle=False)
+            train_loader = DataLoader(train_set, batch_size=self.batch_size, shuffle=True)
+            val_loader = DataLoader(val_set, batch_size=self.batch_size, shuffle=False)
 
+            model = Classifier(self.img_size, 6)
+            model = model.to(self.device)
             criterion = nn.CrossEntropyLoss()
             optimizer = optim.Adam(model.parameters(), lr=self.learning_rate)
             for epoch in range(self.epochs):
@@ -81,7 +81,7 @@ class Trainer(Learner):
                 VL = sum(valid_loss) / len(valid_loss)
                 print(f'Fold {fold + 1} / Epoch {epoch +1} / train loss: {TL:.3f} / train acc: {TA*100:.3f}% / valid loss: {VL:.3f} / valid acc : {VA*100:.3f}%')
 
-                if epoch % 10 == 0:
+                if (epoch+1) % 10 == 0:
                     torch.save(model.state_dict(), f'{self.check_dir}/classify_{epoch}.pth')
 
         print('--------------------------------')
