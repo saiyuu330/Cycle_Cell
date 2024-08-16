@@ -41,10 +41,10 @@ class Trainer(Learner):
 
             criterion = nn.CrossEntropyLoss()
             optimizer = optim.Adam(model.parameters(), lr=self.learning_rate)
-            loss = 0.0
             for epoch in range(self.epochs):
                 model.train()
-
+                train_acc = []
+                train_loss = []
                 for batch in train_loader:
                     inputs, targets = batch
 
@@ -57,24 +57,28 @@ class Trainer(Learner):
                     loss.backward()
                     optimizer.step()
 
+                    acc = (outputs.argmax(dim=-1) == targets.to(self.device).argmax(dim=-1)).float().mean()
+                    train_loss.append(loss.item())
+                    train_acc.append(acc)
+                TA = sum(train_acc) / len(train_acc)
+                TL = sum(train_loss) / len(train_loss)
                 model.eval()
-                correct = 0
-                total = 0
-                with torch.no_grad():
-                    for batch in val_loader:
-                        inputs, targets = batch
-                        inputs = inputs.to(self.device)
-                        targets = targets.to(self.device)
+                loss = 0.0
+                valid_acc = []
+                valid_loss = []
+                for batch in val_loader:
+                    inputs, targets = batch
+                    inputs = inputs.to(self.device)
 
+                    with torch.no_grad():
                         outputs = model(inputs)
-                        _, predicted = torch.max(outputs, 1)
-                        total += targets.size(0)
+                        loss = criterion(outputs.cpu(), targets.to(float))
 
-                        correct += (np.argmax(predicted) == np.argmax(targets)).sum().item()
-
-                accuracy = correct / total
-                all_scores.append(accuracy)
-                print(f'Fold {fold + 1} / Epoch {epoch +1} / loss: {loss.item()} / acc : {accuracy * 100:.2f}%')
+                    acc = (outputs.argmax(dim=-1) == targets.to(self.device).argmax(dim=-1)).float().mean()
+                    valid_loss.append(loss.item())
+                    valid_acc.append(acc)
+                VA = sum(valid_acc) / len(valid_acc)
+                VL = sum(valid_loss) / len(valid_loss)
+                print(f'Fold {fold + 1} / Epoch {epoch +1} / train loss: {TA} / train acc: {TA}% / valid loss: {VL} / valid acc : {VA}%')
 
         print('--------------------------------')
-        print(f'Mean accuracy across all folds: {sum(all_scores) / len(all_scores) * 100:.2f}%')
